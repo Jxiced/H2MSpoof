@@ -110,12 +110,8 @@ while (!finalAddress)
                         WriteLineColour("Replaced bytes.", ConsoleColor.Yellow);
 
                         Memory.WriteProcessMemory(processHandle, currentAddress + i, buffer.Skip(i).Take(newDiscordIdBytes.Length).ToArray(), newDiscordIdBytes.Length, out int bytesWritten);
+                        
                         WriteLineColour("Bytes written.\n", ConsoleColor.Green);
-
-                        if (hex.StartsWith("0xF")) // save time skipping after this if using original exe otherwise will check and change unnecessary static address
-                        {
-                            await Finish();
-                        }
                     }
                 }
             }
