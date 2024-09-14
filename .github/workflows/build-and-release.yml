@@ -1,0 +1,61 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+                             
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8 SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --configuration Release
+
+    - name: Publish as Windows Executable
+      run: dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
+
+    - name: Archive executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: h2m-spoof-exe
+        path: ./publish/*
+        
+  release:
+    name: Create Release and Upload EXE
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+  
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+  
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: h2m-spoof-exe
+        path: ./release
+  
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: v${{ github.run_number }}
+        release_name: "Release v${{ github.run_number }}"
+        body: "Automated release for build ${{ github.run_number }}."
+        draft: false
+        prerelease: false
+        files: ./release/*
