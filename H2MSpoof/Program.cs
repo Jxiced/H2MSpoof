@@ -13,16 +13,15 @@ while (string.IsNullOrWhiteSpace(discordId))
 
 byte[] currentDiscordId = Encoding.UTF8.GetBytes(discordId.Trim());
 
-string newDiscordId = ""; // ID to spoof
+string? newDiscordId = null;
 
-if (newDiscordId.Length > 18 || newDiscordId.Length < 16)
+while (string.IsNullOrWhiteSpace(newDiscordId))
 {
-    Console.WriteLine("Please enter a valid Discord ID.");
-    return;
+    Console.Write("Please enter the Discord ID to spoof: ");
+    newDiscordId = Console.ReadLine();
 }
 
 byte[] newDiscordIdBytes = Encoding.UTF8.GetBytes(newDiscordId);
-
 
 Process[] processes = Process.GetProcessesByName(PROCESS_NAME);
 Console.WriteLine("Waiting for process \"{0}\"", PROCESS_NAME);
@@ -109,7 +108,7 @@ while (!finalAddress)
 
                         WriteLineColour("Replaced bytes.", ConsoleColor.Yellow);
 
-                        Memory.WriteProcessMemory(processHandle, currentAddress + i, buffer.Skip(i).Take(newDiscordIdBytes.Length).ToArray(), newDiscordIdBytes.Length, out int bytesWritten);
+                        Memory.WriteProcessMemory(processHandle, currentAddress + i, buffer.Skip(i).Take(newDiscordIdBytes.Length).ToArray(), newDiscordIdBytes.Length, out _);
                         
                         WriteLineColour("Bytes written.\n", ConsoleColor.Green);
                     }
@@ -124,18 +123,13 @@ while (!finalAddress)
     address = new IntPtr(mbi.BaseAddress.ToInt64() + mbi.RegionSize.ToInt64());
 }
 
-await Finish();
+WriteLineColour("Finished.", ConsoleColor.Green);
 
-async Task Finish()
-{
-    WriteLineColour("Finished.", ConsoleColor.Green);
+Memory.CloseHandle(processHandle);
 
-    Memory.CloseHandle(processHandle);
+await Task.Delay(1500);
 
-    await Task.Delay(1500);
-
-    Environment.Exit(0);
-}
+Environment.Exit(0);
 
 static void WriteLineColour(string text, ConsoleColor color)
 {
