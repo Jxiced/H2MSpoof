@@ -8,11 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
-                             
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -29,13 +25,13 @@ jobs:
       run: dotnet build --configuration Release
 
     - name: Publish as Windows Executable
-      run: dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
+      run: dotnet publish -c Release -r win-x64 --property:PublishDir="${{env.DOTNET_ROOT}}/out"
 
     - name: Archive executable
       uses: actions/upload-artifact@v4
       with:
         name: h2m-spoof-exe
-        path: ./publish/*
+        path: ${{env.DOTNET_ROOT}}/out
         
   release:
     name: Create Release and Upload EXE
@@ -58,8 +54,8 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ github.run_number }}
-        release_name: "Release v${{ github.run_number }}"
-        body: "Automated release for build ${{ github.run_number }}."
+        release_name: "Release"
+        body: "Automated release."
         draft: false
         prerelease: false
         files: ./release/*
